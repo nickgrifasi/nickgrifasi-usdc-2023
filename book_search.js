@@ -21,12 +21,45 @@
  function findSearchTermInBooks(searchTerm, scannedTextObj) {
     /** You will need to implement your search and 
      * return the appropriate object here. */
+    var stringTextObj = JSON.stringify(scannedTextObj);
+    var jsontext = JSON.parse(stringTextObj);
+    var BookNum = jsontext[0].ISBN
+    var checkFound = false
+    var resultNum = 0
 
     var result = {
-        "SearchTerm": "",
-        "Results": []
+        "SearchTerm": searchTerm,
+        "Results": [
+            {
+            "ISBN" : BookNum,
+            "Page" : 1,
+            "Line" : 1
+            },
+        ]
     };
-    
+
+    for(let i = 0; i < jsontext[0].Content.length; i++)
+    {
+        var textInLine = jsontext[0].Content[i].Text
+        if(textInLine.includes(" " + searchTerm))
+        {
+            result.Results[resultNum] = {"ISBN": BookNum, "Page": 1, "Line": 1}
+
+            result.Results[resultNum].ISBN = BookNum
+            result.Results[resultNum].Page = jsontext[0].Content[i].Page
+            result.Results[resultNum].Line = jsontext[0].Content[i].Line
+            checkFound = true
+            resultNum++;
+            //break;
+        }
+        
+    }
+
+    if(checkFound == false)
+    {
+        result.Results[resultNum].Page = "Search term not found"
+        result.Results[resultNum].Line =  "Search term not found"
+    }
     return result; 
 }
 
@@ -54,6 +87,106 @@ const twentyLeaguesIn = [
         ] 
     }
 ]
+
+/** huckleberryFinn test input object.*/
+const huckleberryFinnIn = [
+    {
+        "Title": "Adventures of Huckleberry Finn",
+        "ISBN": "9780470152874",
+        "Content": [
+            {
+                "Page": 7,
+                "Line": 17,
+                "Text": "Well, when Tom and me got to the edge of the hill-top we looked"
+            },
+            {
+                "Page": 12,
+                "Line": 22,
+                "Text": "something. I knowed mighty well that a drownded man don’t float"
+            }
+        ] 
+    }
+]
+
+/** huckleberryFinn test output object.*/
+const huckleberryFinnOut = {
+    "SearchTerm": "well",
+    "Results": [
+        {
+            "ISBN": "9780470152874",
+            "Page": 12,
+            "Line": 22
+        }
+    ]
+
+}
+
+/** huckleberryFinn test fail object.*/
+const huckleberryFinnFail = {
+    "SearchTerm": "mustFail",
+    "Results": [
+        {
+            "ISBN": "9780470152874",
+            "Page": "Search term not found",
+            "Line": "Search term not found"
+        }
+    ]
+
+}
+
+/** toKillAMockingBird test input object.*/
+const toKillAMockingBirdIn = [
+    {
+        "Title": "To Kill a Mockingbird",
+        "ISBN": "9780060888695",
+        "Content": [
+            {
+                "Page": 1,
+                "Line": 1,
+                "Text": "When he was nearly thirteen, my brother Jem got his arm badly broken at the"
+            },
+            {
+                "Page": 1,
+                "Line": 2,
+                "Text": "elbow. When it healed, and Jem’s fears of never being able to play football were "
+            },
+            {
+                "Page": 1,
+                "Line": 4,
+                "Text": "somewhat shorter than his right; when he stood or walked, the back of his hand "
+            },
+            {
+                "Page": 1,
+                "Line": 8,
+                "Text": "sometimes discussed the events leading to his accident. I maintain that the Ewells "
+            }
+        ]
+    }
+]
+
+/** toKillAMockingBird test output object.*/
+const toKillAMockingBirdOut = {
+    "SearchTerm": "the",
+    "Results": [
+        {
+            "ISBN": "9780060888695",
+            "Page": 1,
+            "Line": 1
+        },
+        {
+            "ISBN": "9780060888695",
+            "Page": 1,
+            "Line": 4
+        },
+        {
+            "ISBN": "9780060888695",
+            "Page": 1,
+            "Line": 8
+        },
+    ]
+}
+
+
     
 /** Example output object */
 const twentyLeaguesOut = {
@@ -66,6 +199,8 @@ const twentyLeaguesOut = {
         }
     ]
 }
+
+/** Tests */
 
 /*
  _   _ _   _ ___ _____   _____ _____ ____ _____ ____  
@@ -101,4 +236,44 @@ if (test2result.Results.length == 1) {
     console.log("FAIL: Test 2");
     console.log("Expected:", twentyLeaguesOut.Results.length);
     console.log("Received:", test2result.Results.length);
+}
+
+/** This tests the case-sensitivity of find searchTermInBook. There will be 
+ * an uppercase version of the word within the tester set first. My implementation
+ * should correctly loop over this capitalized word and find the correct term
+ * to pass the test.
+ */
+const test3result = findSearchTermInBooks("well", huckleberryFinnIn); 
+if (JSON.stringify(huckleberryFinnOut) === JSON.stringify(test3result)) {
+    console.log("PASS: Test 3");
+} else {
+    console.log("FAIL: Test 3");
+    console.log("Expected:", huckleberryFinnOut);
+    console.log("Received:", test3result);
+}
+
+/**
+ * This test case deals with the case of there being no line or text inside the book
+ * that contains the search term.
+ */
+const test4result = findSearchTermInBooks("mustFail", huckleberryFinnIn); 
+if (JSON.stringify(huckleberryFinnFail) === JSON.stringify(test4result)) {
+    console.log("PASS: Test 4");
+} else {
+    console.log("FAIL: Test 4");
+    console.log("Expected:", huckleberryFinnFail);
+    console.log("Received:", test4result);
+}
+
+/**
+ * This test case deals with the case of there being multiple search hits within a 
+ * content header of a book.
+ */
+const test5result = findSearchTermInBooks("the", toKillAMockingBirdIn); 
+if (JSON.stringify(toKillAMockingBirdOut) === JSON.stringify(test5result)) {
+    console.log("PASS: Test 5");
+} else {
+    console.log("FAIL: Test 5");
+    console.log("Expected:", toKillAMockingBirdOut);
+    console.log("Received:", test5result);
 }
